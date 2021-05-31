@@ -1,0 +1,231 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns 
+
+import warnings
+warnings.filterwarnings('ignore')
+
+
+
+# pandas ile csv oku
+
+df = pd.read_csv('data/wine.data', header=None)
+
+
+
+# datanın toplam boyutunu gör
+
+df.shape
+
+
+
+# ilk 5 satırı gör
+
+df.head()
+
+
+
+# sütun adlarını düzenle
+
+col_names = [
+    "class",
+    "Alcohol",
+ 	"Malic acid",
+ 	"Ash",
+	"Alcalinity of ash",
+ 	"Magnesium",
+	"Total phenols",
+ 	"Flavanoids",
+ 	"Nonflavanoid phenols",
+ 	"Proanthocyanins",
+	"Color intensity",
+ 	"Hue",
+ 	"OD280/OD315 of diluted wines",
+ 	"Proline"
+]
+
+df.columns = col_names
+df.columns
+
+
+
+
+# genel bilgiler
+
+df.info()
+
+
+# basit istatistikler
+
+df.describe()
+
+
+
+
+# Kategorik sütunları al -> == 'O'
+
+categorical = [var for var in df.columns if df[var].dtype == 'O']
+
+print('Kategorik Değişken sayısı: {}'.format(len(categorical)))
+
+
+
+# Numerik Sütunları al -> != 'O'
+
+numerical = [var for var in df.columns if df[var].dtype != 'O']
+
+print('Numerik Değişken sayısı: {}\n'.format(len(numerical) - 1))
+
+print('Numerik Sütunlar :', numerical[1:])
+
+
+
+# Numerik sütunları gör
+
+df[numerical].head()
+
+
+
+# feature matrisi -> X
+X = df.drop(['class'], axis=1)
+
+# label -> y
+y = df['class']
+
+
+
+# girdileri gör
+
+X.head()
+
+
+# sonuç değişkeni (label)
+
+y.head()
+
+
+# Sınıf adetlerini görelim
+
+y.value_counts(sort=False)
+
+
+
+# %70 - %30 olarak train-test split yapalım
+
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 0)
+
+
+
+
+# boyutları görelim
+
+X_train.shape, X_test.shape
+
+
+
+# önce sütunları alalım
+
+cols = X_train.columns
+cols
+
+
+
+# Feature Scaling
+from sklearn.preprocessing import StandardScaler
+
+# standard scaler alalım
+# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
+sc = StandardScaler()
+
+# X_train üzerinden hem fit (eğitme) hem de transform yapalım
+X_train = sc.fit_transform(X_train)
+
+# X_test üzerinden transform yapalım
+X_test = sc.transform(X_test)
+
+
+
+# X_train ve X_test'in tipleri -> numpy.ndarray
+
+type(X_train)
+
+
+# bunları tekrar pandas DataFrame'e çevirmemiz lazım
+
+X_train = pd.DataFrame(X_train, columns=[cols])
+
+X_test = pd.DataFrame(X_test, columns=[cols])
+
+
+# X_train ve X_test'in tipleri -> numpy.ndarray
+
+type(X_train)
+
+
+
+# Scale edilmiş olarak datayı görelim
+
+X_train.head()
+
+
+
+
+X_test.head()
+
+
+
+from sklearn.naive_bayes import GaussianNB
+
+
+
+
+# Gaussian Naive Bayes'i yaratalım
+
+gnb = GaussianNB()
+
+
+
+# Modeli train data ile eğitelim
+
+gnb.fit(X_train, y_train)
+
+
+
+# test data ile class tahminlerimizi yapalım
+
+y_pred = gnb.predict(X_test)
+
+y_pred
+
+
+
+from sklearn.metrics import accuracy_score
+
+print('Modelimiz için Accuracy Score: {0:0.4f}'. format(accuracy_score(y_test, y_pred)))
+
+
+
+
+# Train data üzerinden tahmin
+
+y_pred_train = gnb.predict(X_train)
+
+y_pred_train
+
+
+
+print('Train-Data Accuracy Score: {0:0.4f}'. format(accuracy_score(y_train, y_pred_train)))
+
+
+
+# train ve test data için skorları yazalım
+
+print('Train Data Skoru: {:.4f}'.format(gnb.score(X_train, y_train)))
+
+print('Test Data Skoru: {:.4f}'.format(gnb.score(X_test, y_test)))
+
+
+
